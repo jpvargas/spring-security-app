@@ -1,18 +1,14 @@
 package com.tenpo.security.auth;
 
 import com.tenpo.security.config.JwtService;
-import com.tenpo.security.user.Role;
 import com.tenpo.security.user.User;
 import com.tenpo.security.user.UserRepository;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 
 @Service
 @RequiredArgsConstructor
@@ -27,15 +23,15 @@ public class AuthenticationService {
   private final AuthenticationManager authenticationManager;
 
   public AuthenticationResponse register(RegisterRequest request) {
-    var user = User.builder()
+    final User user = User.builder()
         .firstname(request.getFirstname())
         .lastname(request.getLastname())
         .email(request.getEmail())
         .password(passwordEncoder.encode(request.getPassword()))
-        .role(Role.USER)
+        .role(request.getRole())
         .build();
     repository.save(user);
-    var jwtToken = jwtService.generateToken(user);
+    final String jwtToken = jwtService.generateToken(user);
     return AuthenticationResponse.builder()
         .token(jwtToken)
         .build();
@@ -48,9 +44,10 @@ public class AuthenticationService {
             request.getPassword()
         )
     );
-    var user = repository.findByEmail(request.getEmail())
-        .orElseThrow();
-    var jwtToken = jwtService.generateToken(user);
+    final String email = request.getEmail();
+    final User user = repository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException(String.format("User not found %s", email)));
+    final String jwtToken = jwtService.generateToken(user);
     return AuthenticationResponse.builder()
         .token(jwtToken)
         .build();
