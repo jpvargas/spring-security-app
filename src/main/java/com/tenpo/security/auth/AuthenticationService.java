@@ -31,7 +31,7 @@ public class AuthenticationService {
         .role(request.getRole())
         .build();
     repository.save(user);
-    final String jwtToken = jwtService.generateToken(user);
+    final String jwtToken = jwtService.generateAccessToken(user);
     return AuthenticationResponse.builder()
         .token(jwtToken)
         .build();
@@ -47,7 +47,7 @@ public class AuthenticationService {
     final String email = request.getEmail();
     final User user = repository.findByEmail(email)
         .orElseThrow(() -> new UsernameNotFoundException(String.format("User not found %s", email)));
-    final String jwtToken = jwtService.generateToken(user);
+    final String jwtToken = jwtService.generateAccessToken(user);
     return AuthenticationResponse.builder()
         .token(jwtToken)
         .build();
