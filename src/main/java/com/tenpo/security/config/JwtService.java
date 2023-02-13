@@ -18,6 +18,8 @@ public class JwtService {
 
   private static final String SECRET_KEY = "4cfac23101464cbb983bad36c79ebf89e46557602542519dd2647233990e3ba0";
 
+  private static final int EXPIRE_DURATION_TOKEN = 1000 * 60 * 24; // 24 hours
+
   public String extractUsername(String token) {
     return extractClaim(token, Claims::getSubject);
   }
@@ -27,17 +29,17 @@ public class JwtService {
     return claimsResolver.apply(claims);
   }
 
-  public String generateToken(UserDetails userDetails) {
-    return generateToken(new HashMap<>(), userDetails);
+  public String generateAccessToken(UserDetails userDetails) {
+    return generateAccessToken(new HashMap<>(), userDetails);
   }
 
-  public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+  public String generateAccessToken(Map<String, Object> extraClaims, UserDetails userDetails) {
     return Jwts
         .builder()
         .setClaims(extraClaims)
         .setSubject(userDetails.getUsername())
         .setIssuedAt(new Date(System.currentTimeMillis()))
-        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+        .setExpiration(new Date(System.currentTimeMillis() + EXPIRE_DURATION_TOKEN))
         .signWith(getSignInKey(), SignatureAlgorithm.HS256)
         .compact();
   }
